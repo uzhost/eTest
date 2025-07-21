@@ -7,6 +7,9 @@ CREATE TABLE admins (
   password VARCHAR(255) NOT NULL
 );
 
+INSERT INTO admins (username, password)
+VALUES ('admin', SHA2('admin123', 256));
+
 CREATE TABLE questions (
   id INT AUTO_INCREMENT PRIMARY KEY,
   question TEXT NOT NULL,
