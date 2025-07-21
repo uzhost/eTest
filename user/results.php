@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'config/db.php';
+require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: user/login.php");
@@ -24,68 +24,68 @@ $stmt->execute([$userId, $perPage, $offset]);
 $results = $stmt->fetchAll();
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Your Results</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-<div class="container mt-5">
-  <h3>📊 Your Test History</h3>
+<?php include_once __DIR__ . '/../header.php'; ?>
+
+<div class="container my-5">
+  <h2 class="mb-4 text-center">📊 Your Test History</h2>
 
   <?php if (count($results) === 0): ?>
-    <div class="alert alert-info mt-4">No test results found.</div>
+    <div class="alert alert-info text-center">You haven't taken any tests yet.</div>
   <?php else: ?>
-    <table class="table table-bordered table-striped mt-4">
-      <thead class="table-dark">
-        <tr>
-          <th>#</th>
-          <th>Date</th>
-          <th>Score</th>
-          <th>Total Questions</th>
-          <th>Correct Answers</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($results as $i => $res): ?>
+    <div class="table-responsive">
+      <table class="table table-hover table-bordered align-middle text-center">
+        <thead class="table-dark">
           <tr>
-            <td><?= $offset + $i + 1 ?></td>
-            <td><?= date("Y-m-d H:i", strtotime($res['created_at'])) ?></td>
-            <td><?= $res['score'] ?>/<?= $res['total_questions'] * 2 ?></td>
-            <td><?= $res['total_questions'] ?></td>
-            <td><?= $res['correct_answers'] ?></td>
+            <th>#</th>
+            <th>Date</th>
+            <th>Score</th>
+            <th>Total Questions</th>
+            <th>Correct Answers</th>
           </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          <?php foreach ($results as $i => $res): ?>
+            <tr>
+              <td><?= $offset + $i + 1 ?></td>
+              <td><?= date("Y-m-d H:i", strtotime($res['created_at'])) ?></td>
+              <td><strong><?= $res['score'] ?>/<?= $res['total_questions'] * 2 ?></strong></td>
+              <td><?= $res['total_questions'] ?></td>
+              <td><?= $res['correct_answers'] ?></td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
 
     <!-- Pagination -->
-    <nav>
-      <ul class="pagination justify-content-center">
-        <?php if ($page > 1): ?>
-          <li class="page-item">
-            <a class="page-link" href="?page=<?= $page - 1 ?>">« Prev</a>
-          </li>
-        <?php endif; ?>
+    <?php if ($totalPages > 1): ?>
+      <nav>
+        <ul class="pagination justify-content-center mt-4">
+          <?php if ($page > 1): ?>
+            <li class="page-item">
+              <a class="page-link" href="?page=<?= $page - 1 ?>">« Prev</a>
+            </li>
+          <?php endif; ?>
 
-        <?php for ($p = 1; $p <= $totalPages; $p++): ?>
-          <li class="page-item <?= $p == $page ? 'active' : '' ?>">
-            <a class="page-link" href="?page=<?= $p ?>"><?= $p ?></a>
-          </li>
-        <?php endfor; ?>
+          <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+            <li class="page-item <?= $p == $page ? 'active' : '' ?>">
+              <a class="page-link" href="?page=<?= $p ?>"><?= $p ?></a>
+            </li>
+          <?php endfor; ?>
 
-        <?php if ($page < $totalPages): ?>
-          <li class="page-item">
-            <a class="page-link" href="?page=<?= $page + 1 ?>">Next »</a>
-          </li>
-        <?php endif; ?>
-      </ul>
-    </nav>
+          <?php if ($page < $totalPages): ?>
+            <li class="page-item">
+              <a class="page-link" href="?page=<?= $page + 1 ?>">Next »</a>
+            </li>
+          <?php endif; ?>
+        </ul>
+      </nav>
+    <?php endif; ?>
   <?php endif; ?>
 
-  <a href="index.php" class="btn btn-primary mt-3">⬅ Back to Home</a>
+  <div class="text-center mt-4">
+    <a href="../index.php" class="btn btn-outline-primary">⬅ Back to Dashboard</a>
+  </div>
 </div>
-</body>
-</html>
+
+<?php include_once __DIR__ . '/../footer.php'; ?>
