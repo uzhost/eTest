@@ -1,4 +1,4 @@
-# eTestDemo
+# eTest Testing System by UZHOST
 
 ## 📘 Grammar Test System (PHP + MySQL)
 
