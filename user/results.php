@@ -1,9 +1,15 @@
 <?php
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+
 session_start();
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: user/login.php");
+    header("Location: login.php");
     exit;
 }
 
@@ -18,13 +24,21 @@ $countStmt->execute([$userId]);
 $totalResults = $countStmt->fetchColumn();
 $totalPages = ceil($totalResults / $perPage);
 
-// Fetch paginated results
-$stmt = $pdo->prepare("SELECT * FROM results WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?");
-$stmt->execute([$userId, $perPage, $offset]);
+// Fetch paginated results (bind by name to avoid collision with positional param)
+$stmt = $pdo->prepare("
+    SELECT * FROM results 
+    WHERE user_id = :user_id 
+    ORDER BY created_at DESC 
+    LIMIT :limit OFFSET :offset
+");
+$stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+$stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
 $results = $stmt->fetchAll();
 ?>
 
-<?php include_once __DIR__ . '/../header.php'; ?>
+<?php include_once '../header.php'; ?>
 
 <div class="container my-5">
   <h2 class="mb-4 text-center">📊 Your Test History</h2>
@@ -57,7 +71,6 @@ $results = $stmt->fetchAll();
       </table>
     </div>
 
-    <!-- Pagination -->
     <?php if ($totalPages > 1): ?>
       <nav>
         <ul class="pagination justify-content-center mt-4">
@@ -84,8 +97,8 @@ $results = $stmt->fetchAll();
   <?php endif; ?>
 
   <div class="text-center mt-4">
-    <a href="../index.php" class="btn btn-outline-primary">⬅ Back to Dashboard</a>
+    <a href="dashboard.php" class="btn btn-outline-primary">⬅ Back to Dashboard</a>
   </div>
 </div>
 
-<?php include_once __DIR__ . '/../footer.php'; ?>
+<?php include_once '../footer.php'; ?>
