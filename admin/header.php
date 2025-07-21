@@ -19,7 +19,7 @@ if (!isset($_SESSION['admin_id']) && basename($_SERVER['PHP_SELF']) != 'login.ph
       background-color: #f8f9fa;
     }
     .navbar {
-      background-color: #343a40;
+      background-color: #0c4a88;
     }
     .navbar .nav-link, .navbar-brand {
       color: #fff;
