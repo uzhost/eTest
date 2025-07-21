@@ -13,7 +13,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $user = $stmt->fetch();
 
   if ($user && password_verify($password, $user["password"])) {
-    // Login success
     $_SESSION["user_id"] = $user["id"];
     $_SESSION["username"] = $user["username"];
     header("Location: dashboard.php");
@@ -24,44 +23,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Login</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-<div class="container mt-5">
+<?php include '../header.php'; ?>
+
+<div class="container">
   <div class="row justify-content-center">
     <div class="col-md-6">
 
-      <h2 class="mb-4 text-center">🔐 Login</h2>
+      <div class="card-style">
 
-      <?php if ($error): ?>
-        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-      <?php endif; ?>
+        <h2 class="mb-4 text-center">🔐 Login to Your Account</h2>
 
-      <form method="POST" action="">
-        <div class="mb-3">
-          <label for="username" class="form-label">👤 Username</label>
-          <input type="text" name="username" class="form-control" id="username" required>
+        <?php if ($error): ?>
+          <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+
+        <form method="POST" action="">
+          <div class="mb-3">
+            <label for="username" class="form-label">👤 Username</label>
+            <input type="text" name="username" class="form-control" id="username" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">🔑 Password</label>
+            <div class="input-group">
+              <input type="password" name="password" class="form-control" id="password" required>
+              <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">👁️</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-success w-100">Login</button>
+        </form>
+
+        <div class="mt-3 text-center">
+          Don't have an account? <a href="register.php">Register here</a>
         </div>
 
-        <div class="mb-3">
-          <label for="password" class="form-label">🔑 Password</label>
-          <input type="password" name="password" class="form-control" id="password" required>
-        </div>
-
-        <button type="submit" class="btn btn-success w-100">Login</button>
-      </form>
-
-      <div class="mt-3 text-center">
-        Don't have an account? <a href="register.php">Register here</a>
       </div>
-
     </div>
   </div>
 </div>
-</body>
-</html>
+
+<script>
+  function togglePassword() {
+    const passwordInput = document.getElementById("password");
+    passwordInput.type = (passwordInput.type === "password") ? "text" : "password";
+  }
+</script>
+
+<?php include '../footer.php'; ?>
