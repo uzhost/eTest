@@ -8,47 +8,49 @@ require_once '../config/db.php';
 
 $stmt = $pdo->query("SELECT * FROM questions ORDER BY id DESC");
 $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$total = count($questions);
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Admin Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+<?php include 'header.php'; ?>
+
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Question Bank</h3>
+    <h3>📋 Question Bank <small class="text-muted">(<?= $total ?> total)</small></h3>
     <div>
-      <a href="add_question.php" class="btn btn-success">+ Add Question</a>
-      <a href="logout.php" class="btn btn-secondary">Logout</a>
+      <a href="add_questions.php" class="btn btn-success">+ Add Question</a>
+      <a href="logout.php" class="btn btn-outline-secondary">Logout</a>
     </div>
   </div>
 
-  <table class="table table-bordered">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Question</th>
-        <th>Answer</th>
-        <th>Difficulty</th>
-        <th>Category</th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php foreach ($questions as $q): ?>
-      <tr>
-        <td><?= $q['id'] ?></td>
-        <td><?= htmlspecialchars($q['question']) ?></td>
-        <td><?= $q['correct_answer'] ?></td>
-        <td><?= $q['difficulty'] ?></td>
-        <td><?= $q['category'] ?></td>
-      </tr>
-      <?php endforeach; ?>
-    </tbody>
-  </table>
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Question</th>
+          <th>Correct Answer</th>
+          <th>Difficulty</th>
+          <th>Category</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($questions as $q): ?>
+          <tr>
+            <td><?= htmlspecialchars($q['id']) ?></td>
+            <td><?= htmlspecialchars($q['question']) ?></td>
+            <td><?= htmlspecialchars($q['correct_answer']) ?></td>
+            <td><?= htmlspecialchars($q['difficulty']) ?></td>
+            <td><?= htmlspecialchars($q['category']) ?></td>
+            <td>
+              <a href="edit_question.php?id=<?= $q['id'] ?>" class="btn btn-sm btn-primary">Edit</a>
+              <a href="delete_question.php?id=<?= $q['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
 </div>
-</body>
-</html>
+
+<?php include 'footer.php'; ?>
