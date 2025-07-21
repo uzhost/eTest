@@ -92,6 +92,51 @@ $totalTests = $pdo->query("SELECT COUNT(*) FROM results")->fetchColumn();
     </div>
   <?php endif; ?>
 
+ <hr class="my-5">
+
+  <div class="card card-style">
+    <h4 class="mb-3">📊 Latest Test Results</h4>
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Score</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php
+          $stmt = $pdo->prepare("
+            SELECT r.*, u.username 
+            FROM results r 
+            JOIN users u ON r.user_id = u.id 
+            ORDER BY r.id DESC 
+            LIMIT 5
+          ");
+          $stmt->execute();
+          $latest = $stmt->fetchAll();
+
+          if ($latest):
+            foreach ($latest as $row):
+          ?>
+            <tr>
+              <td><?= htmlspecialchars($row['username']) ?></td>
+              <td><?= $row['score'] ?>/<?= $row['total'] ?></td>
+              <td><?= date("M d, Y H:i", strtotime($row['created_at'] ?? $row['date'] ?? 'now')) ?></td>
+            </tr>
+          <?php
+            endforeach;
+          else:
+            echo "<tr><td colspan='3'>No recent results found.</td></tr>";
+          endif;
+          ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
 </div>
-</body>
-</html>
+
+<?php include_once 'footer.php'; ?>
