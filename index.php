@@ -1,4 +1,13 @@
-<?php require_once 'config/db.php'; ?>
+<?php
+require_once 'config/db.php';
+session_start();
+
+if (!isset($_SESSION['user_id'])) {
+  header("Location: user/login.php"); // adjusted path
+  exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
