@@ -10,14 +10,15 @@ CREATE TABLE admins (
 INSERT INTO admins (username, password)
 VALUES ('admin', SHA2('admin123', 256));
 
-CREATE TABLE questions (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  question TEXT NOT NULL,
-  option_a VARCHAR(255),
-  option_b VARCHAR(255),
-  option_c VARCHAR(255),
-  option_d VARCHAR(255),
-  correct_answer VARCHAR(255),
-  difficulty ENUM('easy','medium','hard') DEFAULT 'easy',
-  category VARCHAR(100)
+CREATE TABLE `questions` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `question` TEXT NOT NULL,
+  `option_a` VARCHAR(255),
+  `option_b` VARCHAR(255),
+  `option_c` VARCHAR(255),
+  `option_d` VARCHAR(255),
+  `correct_answer` ENUM('option_a', 'option_b', 'option_c', 'option_d'),
+  `difficulty` ENUM('easy', 'medium', 'hard'),
+  `category` VARCHAR(100)
 );
+
