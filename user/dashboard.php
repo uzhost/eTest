@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'config/db.php';
+require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -42,7 +42,7 @@ $totalAttempts = $stmt->fetchColumn();
       <p>No test attempts yet.</p>
     <?php endif; ?>
 
-    <a href="take_test.php" class="btn btn-success mt-3">📝 Take a New Test</a>
+    <a href="start_test.php" class="btn btn-success mt-3">📝 Take a New Test</a>
     <a href="logout.php" class="btn btn-outline-secondary mt-3 ms-2">Logout</a>
   </div>
 </div>
