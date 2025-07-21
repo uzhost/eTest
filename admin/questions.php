@@ -13,50 +13,109 @@ if (isset($_GET['delete'])) {
     header("Location: questions.php");
     exit;
 }
+
+// Filtering logic
+$difficultyFilter = $_GET['difficulty'] ?? '';
+$categoryFilter = $_GET['category'] ?? '';
+
+$query = "SELECT * FROM questions WHERE 1=1";
+$params = [];
+
+if ($difficultyFilter) {
+    $query .= " AND difficulty = ?";
+    $params[] = $difficultyFilter;
+}
+if ($categoryFilter) {
+    $query .= " AND category = ?";
+    $params[] = $categoryFilter;
+}
+
+$query .= " ORDER BY id DESC";
+$stmt = $pdo->prepare($query);
+$stmt->execute($params);
+$questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// For dropdown options
+$difficulties = ['easy', 'medium', 'hard'];
+$categoriesStmt = $pdo->query("SELECT DISTINCT category FROM questions ORDER BY category");
+$categories = $categoriesStmt->fetchAll(PDO::FETCH_COLUMN);
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>All Questions</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-<div class="container mt-4">
-  <h3>All Questions</h3>
-  <a href="dashboard.php" class="btn btn-link mb-3">← Back to Dashboard</a>
-  <a href="add_question.php" class="btn btn-primary mb-3">➕ Add New Question</a>
+<?php include 'header.php'; ?>
 
-  <table class="table table-bordered table-striped">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Question</th>
-        <th>Answer</th>
-        <th>Difficulty</th>
-        <th>Category</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-    <?php
-    $stmt = $pdo->query("SELECT * FROM questions ORDER BY id DESC");
-    foreach ($stmt as $row): ?>
-      <tr>
-        <td><?= $row['id'] ?></td>
-        <td><?= htmlspecialchars(substr($row['question'], 0, 60)) ?>...</td>
-        <td><?= strtoupper(str_replace("option_", "", $row['correct_answer'])) ?></td>
-        <td><?= $row['difficulty'] ?></td>
-        <td><?= $row['category'] ?></td>
-        <td>
-          <a href="edit_question.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-warning">✏️ Edit</a>
-          <a href="questions.php?delete=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">🗑️ Delete</a>
-        </td>
-      </tr>
-    <?php endforeach; ?>
-    </tbody>
-  </table>
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>🧾 All Questions</h4>
+    <div>
+      <a href="dashboard.php" class="btn btn-outline-dark btn-sm">← Dashboard</a>
+      <a href="add_questions.php" class="btn btn-primary btn-sm">➕ Add New Question</a>
+    </div>
+  </div>
+
+  <form method="get" class="row g-2 mb-4">
+    <div class="col-md-3">
+      <select name="difficulty" class="form-select">
+        <option value="">All Difficulties</option>
+        <?php foreach ($difficulties as $level): ?>
+          <option value="<?= $level ?>" <?= $difficultyFilter === $level ? 'selected' : '' ?>>
+            <?= ucfirst($level) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <select name="category" class="form-select">
+        <option value="">All Categories</option>
+        <?php foreach ($categories as $cat): ?>
+          <option value="<?= htmlspecialchars($cat) ?>" <?= $categoryFilter === $cat ? 'selected' : '' ?>>
+            <?= ucfirst($cat) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-secondary">Filter</button>
+      <a href="questions.php" class="btn btn-outline-secondary">Reset</a>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Question</th>
+          <th>Answer</th>
+          <th>Difficulty</th>
+          <th>Category</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php if (count($questions) > 0): ?>
+          <?php foreach ($questions as $row): ?>
+            <tr>
+              <td><?= $row['id'] ?></td>
+              <td><?= htmlspecialchars(substr($row['question'], 0, 60)) ?>...</td>
+              <td><?= strtoupper(str_replace("option_", "", $row['correct_answer'])) ?></td>
+              <td><?= htmlspecialchars($row['difficulty']) ?></td>
+              <td><?= htmlspecialchars($row['category']) ?></td>
+              <td>
+                <a href="edit_question.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-warning">✏️</a>
+                <a href="questions.php?delete=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Delete this question?')">🗑️</a>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <tr>
+            <td colspan="6" class="text-center text-muted">No questions found.</td>
+          </tr>
+        <?php endif; ?>
+      </tbody>
+    </table>
+  </div>
 </div>
-</body>
-</html>
+
+<?php include 'footer.php'; ?>
