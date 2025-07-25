@@ -6,50 +6,68 @@ if (!isset($_SESSION['admin'])) {
 }
 require_once '../config/db.php';
 
-$stmt = $pdo->query("SELECT * FROM questions ORDER BY id DESC");
-$questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$total = count($questions);
+// Count total questions
+$qCount = $pdo->query("SELECT COUNT(*) FROM questions")->fetchColumn();
+
+// Count total users
+$uCount = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+
+// Count distinct categories
+$cCount = $pdo->query("SELECT COUNT(DISTINCT category) FROM questions")->fetchColumn();
+
+// Count completed tests
+$tCount = $pdo->query("SELECT COUNT(*) FROM results")->fetchColumn();
 ?>
 
 <?php include 'header.php'; ?>
 
-<div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>📋 Question Bank <small class="text-muted">(<?= $total ?> total)</small></h3>
-    <div>
-      <a href="add_questions.php" class="btn btn-success">+ Add Question</a>
-      <a href="logout.php" class="btn btn-outline-secondary">Logout</a>
+<div class="container mt-5">
+  <h3 class="mb-4">👨‍💼 Admin Dashboard</h3>
+
+  <div class="row g-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm border-start border-primary border-4">
+        <div class="card-body">
+          <h6 class="text-muted">Total Questions</h6>
+          <h3><?= $qCount ?></h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm border-start border-success border-4">
+        <div class="card-body">
+          <h6 class="text-muted">Registered Users</h6>
+          <h3><?= $uCount ?></h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm border-start border-warning border-4">
+        <div class="card-body">
+          <h6 class="text-muted">Categories</h6>
+          <h3><?= $cCount ?></h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm border-start border-danger border-4">
+        <div class="card-body">
+          <h6 class="text-muted">Completed Tests</h6>
+          <h3><?= $tCount ?></h3>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="table-responsive">
-    <table class="table table-striped table-bordered align-middle">
-      <thead class="table-dark">
-        <tr>
-          <th>#</th>
-          <th>Question</th>
-          <th>Correct Answer</th>
-          <th>Difficulty</th>
-          <th>Category</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($questions as $q): ?>
-          <tr>
-            <td><?= htmlspecialchars($q['id']) ?></td>
-            <td><?= htmlspecialchars($q['question']) ?></td>
-            <td><?= htmlspecialchars($q['correct_answer']) ?></td>
-            <td><?= htmlspecialchars($q['difficulty']) ?></td>
-            <td><?= htmlspecialchars($q['category']) ?></td>
-            <td>
-              <a href="edit_question.php?id=<?= $q['id'] ?>" class="btn btn-sm btn-primary">Edit</a>
-              <a href="delete_question.php?id=<?= $q['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
-            </td>
-          </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
+  <div class="mt-5 d-flex flex-wrap gap-3">
+    <a href="upload_questions.php" class="btn btn-outline-primary">📤 Upload Questions</a>
+    <a href="questions.php" class="btn btn-outline-success">🗂 View Question Bank</a>
+    <a href="users.php" class="btn btn-outline-secondary">👥 Manage Users</a>
+    <a href="results.php" class="btn btn-outline-dark">📈 Test Results</a>
+    <a href="logout.php" class="btn btn-outline-danger">🚪 Logout</a>
   </div>
 </div>
 
