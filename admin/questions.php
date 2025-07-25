@@ -14,28 +14,43 @@ if (isset($_GET['delete'])) {
     exit;
 }
 
-// Filtering logic
+// Filters
 $difficultyFilter = $_GET['difficulty'] ?? '';
 $categoryFilter = $_GET['category'] ?? '';
 
+// Pagination
+$limit = 25;
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$offset = ($page - 1) * $limit;
+
+// Query
 $query = "SELECT * FROM questions WHERE 1=1";
+$countQuery = "SELECT COUNT(*) FROM questions WHERE 1=1";
 $params = [];
 
 if ($difficultyFilter) {
     $query .= " AND difficulty = ?";
+    $countQuery .= " AND difficulty = ?";
     $params[] = $difficultyFilter;
 }
 if ($categoryFilter) {
     $query .= " AND category = ?";
+    $countQuery .= " AND category = ?";
     $params[] = $categoryFilter;
 }
 
-$query .= " ORDER BY id DESC";
+$query .= " ORDER BY id DESC LIMIT $limit OFFSET $offset";
 $stmt = $pdo->prepare($query);
 $stmt->execute($params);
 $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// For dropdown options
+// Count total
+$stmtCount = $pdo->prepare($countQuery);
+$stmtCount->execute($params);
+$totalQuestions = $stmtCount->fetchColumn();
+$totalPages = ceil($totalQuestions / $limit);
+
+// Dropdown options
 $difficulties = ['easy', 'medium', 'hard'];
 $categoriesStmt = $pdo->query("SELECT DISTINCT category FROM questions ORDER BY category");
 $categories = $categoriesStmt->fetchAll(PDO::FETCH_COLUMN);
@@ -45,7 +60,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_COLUMN);
 
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4>🧾 All Questions</h4>
+    <h4>📚 Question Bank</h4>
     <div>
       <a href="dashboard.php" class="btn btn-outline-dark btn-sm">← Dashboard</a>
       <a href="add_questions.php" class="btn btn-primary btn-sm">➕ Add New Question</a>
@@ -98,7 +113,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_COLUMN);
           <?php foreach ($questions as $row): ?>
             <tr>
               <td><?= $row['id'] ?></td>
-              <td><?= htmlspecialchars(substr($row['question'], 0, 60)) ?>...</td>
+              <td><?= htmlspecialchars(mb_strimwidth($row['question'], 0, 60, '...')) ?></td>
               <td><?= strtoupper(str_replace("option_", "", $row['correct_answer'])) ?></td>
               <td><?= htmlspecialchars($row['difficulty']) ?></td>
               <td><?= htmlspecialchars($row['category']) ?></td>
@@ -116,6 +131,54 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_COLUMN);
       </tbody>
     </table>
   </div>
+
+  <?php if ($totalPages > 1): ?>
+  <nav>
+    <ul class="pagination justify-content-center">
+      <?php
+      $shown = [];
+
+      // Always show first 3 pages
+      for ($i = 1; $i <= min(3, $totalPages); $i++) {
+        $shown[] = $i;
+      }
+
+      // Pages near current
+      for ($i = $page - 1; $i <= $page + 1; $i++) {
+        if ($i > 3 && $i < $totalPages - 2) {
+          $shown[] = $i;
+        }
+      }
+
+      // Always show last 3 pages
+      for ($i = $totalPages - 2; $i <= $totalPages; $i++) {
+        if ($i > 3) {
+          $shown[] = $i;
+        }
+      }
+
+      // Remove duplicates and sort
+      $shown = array_unique($shown);
+      sort($shown);
+
+      $prev = 0;
+      foreach ($shown as $i):
+        if ($prev + 1 < $i) {
+          echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+        }
+        ?>
+        <li class="page-item <?= $i == $page ? 'active' : '' ?>">
+          <a class="page-link" href="?page=<?= $i ?>&difficulty=<?= urlencode($difficultyFilter) ?>&category=<?= urlencode($categoryFilter) ?>">
+            <?= $i ?>
+          </a>
+        </li>
+        <?php
+        $prev = $i;
+      endforeach;
+      ?>
+    </ul>
+  </nav>
+<?php endif; ?>
 </div>
 
 <?php include 'footer.php'; ?>
