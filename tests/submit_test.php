@@ -3,58 +3,74 @@ require_once '../config/db.php';
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: user/login.php");
+    header("Location: ../user/login.php");
     exit;
 }
 
-$total = 0;
-$correct = 0;
+$user_id = $_SESSION['user_id'];
+$questions = $_SESSION['questions'] ?? [];
 
-// Loop through each submitted answer
-foreach ($_POST as $qid => $answer) {
-    if (strpos($qid, 'q') === 0) {
-        $id = intval(substr($qid, 1));
-        $stmt = $pdo->prepare("SELECT correct_answer FROM questions WHERE id = ?");
-        $stmt->execute([$id]);
-        $row = $stmt->fetch();
+$score = 0;
+$total = count($questions);
+$details = [];
 
-        if ($row && $row['correct_answer'] === $answer) {
-            $correct++;
-        }
-        $total++;
+foreach ($questions as $q) {
+    $qid = $q['id'];
+    $correct = $q['correct_answer'];
+    $userAnswer = $_POST["q$qid"] ?? null;
+
+    if ($userAnswer === $correct) {
+        $score += 2; // 2 points per correct answer
     }
+
+    $details[] = [
+        'question_id' => $qid,
+        'user_answer' => $userAnswer,
+        'correct_answer' => $correct
+    ];
 }
 
-$score = $correct * 2;
+// Save results to DB
+$stmt = $pdo->prepare("INSERT INTO results (user_id, score, total_questions, taken_at) VALUES (?, ?, ?, NOW())");
+$stmt->execute([$user_id, $score, $total]);
+$result_id = $pdo->lastInsertId();
 
-// Save to results table
-$stmt = $pdo->prepare("INSERT INTO results (user_id, score, total_questions, correct_answers) VALUES (?, ?, ?, ?)");
-$stmt->execute([$_SESSION['user_id'], $score, $total, $correct]);
+// Optionally save detailed responses
+foreach ($details as $d) {
+    $stmt = $pdo->prepare("INSERT INTO result_details (result_id, question_id, user_answer, correct_answer) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$result_id, $d['question_id'], $d['user_answer'], $d['correct_answer']]);
+}
 
-require_once '../header.php'; // Make sure this contains <body> tag start
+// Clear used questions from session
+unset($_SESSION['questions']);
 ?>
 
-<div class="container mt-5 text-center">
-  <div class="card shadow-lg p-4 rounded-4 bg-white">
-    <h2 class="mb-4 text-success">🎯 Test Completed!</h2>
-    
-    <div class="mb-3">
-      <span class="badge bg-secondary fs-5">📝 Total Questions: <?= htmlspecialchars($total) ?></span>
-    </div>
-    
-    <div class="mb-3">
-      <span class="badge bg-info fs-5">✅ Correct Answers: <?= htmlspecialchars($correct) ?></span>
-    </div>
-    
-    <div class="mb-3">
-      <span class="badge bg-warning text-dark fs-5">⭐ Score: <?= htmlspecialchars($score) ?> / 100</span>
-    </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Result</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<header class="bg-success text-white py-3 mb-4">
+  <div class="container">
+    <h3 class="mb-0">🎉 Test Completed</h3>
+  </div>
+</header>
 
-    <div class="mt-4">
-      <a href="../index.php" class="btn btn-primary btn-lg me-2">🔁 Try Again</a>
-      <a href="../users/results.php" class="btn btn-outline-secondary btn-lg">📊 View My History</a>
-    </div>
+<div class="container">
+  <div class="alert alert-info text-center">
+    <h4>Your Score: <?= $score ?> / <?= $total * 2 ?></h4>
+    <p>Correct Answers: <?= $score / 2 ?> out of <?= $total ?></p>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="index.php" class="btn btn-primary">📘 Take Another Test</a>
+    <a href="../user/dashboard.php" class="btn btn-outline-secondary">🏠 Go to Dashboard</a>
   </div>
 </div>
 
 <?php require_once '../footer.php'; ?>
+</body>
+</html>
