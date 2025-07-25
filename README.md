@@ -43,46 +43,7 @@ An interactive web-based English grammar test system with:
 
 2. **Create MySQL Database**
 
-   Run the following SQL:
-
-   ```sql
-   CREATE DATABASE grammar_test;
-   USE grammar_test;
-
-   -- Users Table
-   CREATE TABLE users (
-     id INT AUTO_INCREMENT PRIMARY KEY,
-     username VARCHAR(100) NOT NULL,
-     email VARCHAR(100) NOT NULL UNIQUE,
-     password VARCHAR(255) NOT NULL
-   );
-
-   -- Questions Table
-   CREATE TABLE questions (
-     id INT AUTO_INCREMENT PRIMARY KEY,
-     question TEXT NOT NULL,
-     option_a TEXT NOT NULL,
-     option_b TEXT NOT NULL,
-     option_c TEXT NOT NULL,
-     option_d TEXT NOT NULL,
-     correct_answer VARCHAR(20) NOT NULL,
-     difficulty ENUM('easy', 'medium', 'hard') DEFAULT 'easy',
-     category VARCHAR(100)
-   );
-
-   -- Results Table
-   CREATE TABLE results (
-     id INT AUTO_INCREMENT PRIMARY KEY,
-     user_id INT NOT NULL,
-     score INT,
-     total_questions INT,
-     correct_answers INT,
-     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-     FOREIGN KEY (user_id) REFERENCES users(id)
-   );
-   ```
-
-3. **Set Up Configuration**
+  3. **Set Up Configuration**
 
    Edit your database connection in `config/db.php`:
 
