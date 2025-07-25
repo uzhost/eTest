@@ -7,55 +7,41 @@ if (!isset($_SESSION['user_id'])) {
   exit;
 }
 
-// Store answers from previous page
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  foreach ($_POST as $key => $val) {
-    if (strpos($key, 'q') === 0) {
-      $_SESSION['answers'][$key] = $val;
-    }
-  }
-}
+// Load questions only once
+if (!isset($_SESSION['questions'])) {
+  $difficulty = $_POST['difficulty'] ?? '';
+  $category = $_POST['category'] ?? '';
 
-// Get filters from first request or session
-if (isset($_POST['difficulty']) || isset($_POST['category'])) {
+  $sql = "SELECT * FROM questions WHERE 1";
+  $params = [];
+
+  if ($difficulty && $difficulty !== 'all') {
+    $sql .= " AND difficulty = ?";
+    $params[] = $difficulty;
+  }
+  if (!empty($category)) {
+    $sql .= " AND category = ?";
+    $params[] = $category;
+  }
+
+  $sql .= " ORDER BY RAND() LIMIT 50";
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute($params);
+  $_SESSION['questions'] = $stmt->fetchAll();
   $_SESSION['test_filters'] = [
-    'difficulty' => $_POST['difficulty'] ?? '',
-    'category'   => $_POST['category'] ?? '',
+    'difficulty' => $difficulty,
+    'category' => $category
   ];
 }
 
-$filters = $_SESSION['test_filters'] ?? ['difficulty' => '', 'category' => ''];
-$difficulty = $filters['difficulty'];
-$category = $filters['category'];
+$questions = $_SESSION['questions'] ?? [];
+$difficulty = $_SESSION['test_filters']['difficulty'] ?? '';
+$category = $_SESSION['test_filters']['category'] ?? '';
 
-// Fetch questions
-$sql = "SELECT * FROM questions WHERE 1";
-$params = [];
-
-if ($difficulty && $difficulty !== 'all') {
-  $sql .= " AND difficulty = ?";
-  $params[] = $difficulty;
-}
-if (!empty($category)) {
-  $sql .= " AND category = ?";
-  $params[] = $category;
-}
-
-$sql .= " ORDER BY RAND() LIMIT 50";
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$questions = $stmt->fetchAll();
-
-// Split pages
 $totalPages = ceil(count($questions) / 10);
 $currentPage = isset($_GET['page']) ? max(1, min($totalPages, intval($_GET['page']))) : 1;
 $start = ($currentPage - 1) * 10;
 $currentQuestions = array_slice($questions, $start, 10);
-
-// Store full list of question IDs once
-if (!isset($_SESSION['question_ids'])) {
-  $_SESSION['question_ids'] = array_column($questions, 'id');
-}
 
 include '../header.php';
 ?>
@@ -67,25 +53,23 @@ include '../header.php';
     <div class="alert alert-warning">No questions found for selected filters.</div>
     <a href="index.php" class="btn btn-secondary">⬅ Back</a>
   <?php else: ?>
-    <form action="start_test.php?page=<?= $currentPage + 1 ?>" method="post">
+    <form action="submit_test.php" method="post" onsubmit="injectAnswers()">
+      <input type="hidden" name="difficulty" value="<?= htmlspecialchars($difficulty) ?>">
+      <input type="hidden" name="category" value="<?= htmlspecialchars($category) ?>">
+
       <?php foreach ($currentQuestions as $i => $q): ?>
         <div class="card mb-3 shadow-sm">
           <div class="card-body">
             <p><strong>Q<?= $start + $i + 1 ?>:</strong> <?= htmlspecialchars($q['question']) ?></p>
             <?php foreach (['a', 'b', 'c', 'd'] as $opt): ?>
-              <?php
-                $qid = 'q' . $q['id'];
-                $saved = $_SESSION['answers'][$qid] ?? '';
-                $checked = ($saved === "option_$opt") ? 'checked' : '';
-              ?>
               <div class="form-check">
                 <input type="radio"
-                       name="<?= $qid ?>"
+                       name="q<?= $q['id'] ?>"
                        value="option_<?= $opt ?>"
                        class="form-check-input"
-                       id="<?= $qid ?>_<?= $opt ?>"
-                       <?= $checked ?>>
-                <label class="form-check-label" for="<?= $qid ?>_<?= $opt ?>">
+                       id="q<?= $q['id'] ?>_<?= $opt ?>"
+                       onchange="saveAnswer('<?= $q['id'] ?>', 'option_<?= $opt ?>')">
+                <label class="form-check-label" for="q<?= $q['id'] ?>_<?= $opt ?>">
                   <?= htmlspecialchars($q["option_$opt"]) ?>
                 </label>
               </div>
@@ -97,7 +81,7 @@ include '../header.php';
       <div class="d-flex justify-content-between align-items-center">
         <div>
           <?php if ($currentPage > 1): ?>
-            <a href="start_test.php?page=<?= $currentPage - 1 ?>" class="btn btn-outline-primary">⬅ Previous</a>
+            <a href="?page=<?= $currentPage - 1 ?>" class="btn btn-outline-primary">⬅ Previous</a>
           <?php endif; ?>
         </div>
 
@@ -107,16 +91,46 @@ include '../header.php';
 
         <div>
           <?php if ($currentPage < $totalPages): ?>
-            <button class="btn btn-primary">Next ➡</button>
+            <a href="?page=<?= $currentPage + 1 ?>" class="btn btn-outline-primary">Next ➡</a>
           <?php else: ?>
-            <form action="submit_test.php" method="post">
-              <button class="btn btn-success">✅ Submit Test</button>
-            </form>
+            <button class="btn btn-success">✅ Submit Test</button>
           <?php endif; ?>
         </div>
       </div>
     </form>
   <?php endif; ?>
 </div>
+
+<script>
+function saveAnswer(questionId, answer) {
+  const saved = JSON.parse(localStorage.getItem("testAnswers") || "{}");
+  saved[questionId] = answer;
+  localStorage.setItem("testAnswers", JSON.stringify(saved));
+}
+
+function restoreAnswers() {
+  const saved = JSON.parse(localStorage.getItem("testAnswers") || "{}");
+  for (const [questionId, answer] of Object.entries(saved)) {
+    const radio = document.querySelector(`input[name="q${questionId}"][value="${answer}"]`);
+    if (radio) radio.checked = true;
+  }
+}
+
+function injectAnswers() {
+  const form = document.querySelector('form');
+  const saved = JSON.parse(localStorage.getItem("testAnswers") || "{}");
+  for (const [qid, ans] of Object.entries(saved)) {
+    if (!form.querySelector(`input[name="q${qid}"]`)) {
+      const hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.name = "q" + qid;
+      hidden.value = ans;
+      form.appendChild(hidden);
+    }
+  }
+}
+
+window.addEventListener("DOMContentLoaded", restoreAnswers);
+</script>
 
 <?php include '../footer.php'; ?>
