@@ -36,6 +36,15 @@ $_SESSION['questions'] = $questions;
   <meta charset="UTF-8">
   <title>Take Test</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    footer {
+      margin-top: 40px;
+      padding: 10px 0;
+      background: #f8f9fa;
+      text-align: center;
+      border-top: 1px solid #ddd;
+    }
+  </style>
   <script>
     let currentPage = 1;
     const questionsPerPage = 10;
@@ -46,27 +55,43 @@ $_SESSION['questions'] = $questions;
       allQuestions.forEach((el, idx) => {
         el.style.display = Math.floor(idx / questionsPerPage) + 1 === page ? 'block' : 'none';
       });
-      document.getElementById('page-indicator').textContent = `Page ${page}`;
+      document.getElementById('page-indicator').textContent = `Page ${page} of ${totalPages}`;
       document.getElementById('prevBtn').disabled = page === 1;
       document.getElementById('nextBtn').disabled = page === totalPages;
       currentPage = page;
+      restoreAnswers();
     }
 
     function nextPage() {
       saveCurrentAnswers();
-      showPage(currentPage + 1);
+      if (currentPage < totalPages) showPage(currentPage + 1);
     }
 
     function prevPage() {
       saveCurrentAnswers();
-      showPage(currentPage - 1);
+      if (currentPage > 1) showPage(currentPage - 1);
     }
 
     function saveCurrentAnswers() {
       document.querySelectorAll('.question-card').forEach(card => {
-        const radios = card.querySelectorAll('input[type=radio]:checked');
+        if (card.style.display === 'block') {
+          const radios = card.querySelectorAll('input[type=radio]');
+          radios.forEach(radio => {
+            if (radio.checked) {
+              answers[radio.name] = radio.value;
+            }
+          });
+        }
+      });
+    }
+
+    function restoreAnswers() {
+      document.querySelectorAll('.question-card').forEach(card => {
+        const radios = card.querySelectorAll('input[type=radio]');
         radios.forEach(radio => {
-          answers[radio.name] = radio.value;
+          if (answers[radio.name] === radio.value) {
+            radio.checked = true;
+          }
         });
       });
     }
@@ -101,24 +126,26 @@ $_SESSION['questions'] = $questions;
     document.addEventListener("DOMContentLoaded", () => {
       window.totalPages = Math.ceil(document.querySelectorAll('.question-card').length / questionsPerPage);
       showPage(1);
-      startTimer(1800); // 30 minutes
+      startTimer(30 * 60); // 30 minutes
     });
   </script>
 </head>
 <body>
-<div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center">
-    <h3>📝 Grammar Test (50 Questions)</h3>
-    <div class="fw-bold text-danger">⏱ Time Left: <span id="timer">30:00</span></div>
+<header class="bg-dark text-white p-3 mb-4">
+  <div class="container d-flex justify-content-between align-items-center">
+    <h4 class="mb-0">Grammar Test</h4>
+    <div>⏱ Time Left: <span id="timer">30:00</span></div>
   </div>
+</header>
 
+<div class="container">
   <?php if (count($questions) === 0): ?>
     <div class="alert alert-warning">No questions found for selected filters.</div>
     <a href="index.php" class="btn btn-secondary">⬅ Back</a>
   <?php else: ?>
     <form action="submit_test.php" method="post" id="testForm">
       <?php foreach ($questions as $i => $q): ?>
-        <div class="card mb-3 question-card" style="display: none">
+        <div class="card mb-3 question-card" style="display: none;">
           <div class="card-body">
             <p><strong>Q<?= $i + 1 ?>:</strong> <?= htmlspecialchars($q['question']) ?></p>
             <?php foreach (['a', 'b', 'c', 'd'] as $opt): ?>
@@ -136,11 +163,13 @@ $_SESSION['questions'] = $questions;
           </div>
         </div>
       <?php endforeach; ?>
+
       <div class="d-flex justify-content-between align-items-center mt-4">
-        <button type="button" class="btn btn-secondary" onclick="prevPage()" id="prevBtn">⬅ Previous</button>
+        <button type="button" class="btn btn-outline-secondary" onclick="prevPage()" id="prevBtn">⬅ Previous</button>
         <span id="page-indicator">Page 1</span>
-        <button type="button" class="btn btn-secondary" onclick="nextPage()" id="nextBtn">Next ➡</button>
+        <button type="button" class="btn btn-outline-secondary" onclick="nextPage()" id="nextBtn">Next ➡</button>
       </div>
+
       <div class="text-center mt-4">
         <button type="button" onclick="submitTest()" class="btn btn-success">✅ Submit Test</button>
       </div>
