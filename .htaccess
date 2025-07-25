@@ -1,0 +1,12 @@
+# Enable RewriteEngine
+RewriteEngine On
+
+# If the requested file or directory does NOT exist...
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# ...send to 404.php
+RewriteRule ^(.*)$ /404.php [L]
+
+# Optional: set server-level 404 error
+ErrorDocument 404 /404.php
