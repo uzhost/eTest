@@ -31,7 +31,7 @@ $score = $correct * 2;
 $stmt = $pdo->prepare("INSERT INTO results (user_id, score, total_questions, correct_answers) VALUES (?, ?, ?, ?)");
 $stmt->execute([$_SESSION['user_id'], $score, $total, $correct]);
 
-require_once 'header.php'; // Make sure this contains <body> tag start
+require_once '../header.php'; // Make sure this contains <body> tag start
 ?>
 
 <div class="container mt-5 text-center">
@@ -57,4 +57,4 @@ require_once 'header.php'; // Make sure this contains <body> tag start
   </div>
 </div>
 
-<?php require_once 'footer.php'; ?>
+<?php require_once '../footer.php'; ?>
