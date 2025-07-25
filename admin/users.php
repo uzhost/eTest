@@ -8,13 +8,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_id'], $_POST['am
     $amount = floatval($_POST['amount']);
 
     if ($amount > 0) {
+        // 1. Update balance
         $stmt = $pdo->prepare("UPDATE users SET balance = balance + ? WHERE id = ?");
         $stmt->execute([$amount, $userId]);
-        $message = "✅ Balance updated successfully.";
+
+        // 2. Insert transaction
+        $adminId = $_SESSION['admin_id'];
+        $pdo->prepare("INSERT INTO transactions (user_id, admin_id, amount) VALUES (?, ?, ?)")
+            ->execute([$userId, $adminId, $amount]);
+
+        $message = "✅ Balance updated and transaction recorded.";
     } else {
         $error = "❌ Invalid amount.";
     }
 }
+
 
 // Fetch all users
 $users = $pdo->query("SELECT id, username, email, balance FROM users ORDER BY id DESC")->fetchAll();
