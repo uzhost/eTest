@@ -27,25 +27,34 @@ foreach ($_POST as $qid => $answer) {
 
 $score = $correct * 2;
 
-// Save to `results` table
+// Save to results table
 $stmt = $pdo->prepare("INSERT INTO results (user_id, score, total_questions, correct_answers) VALUES (?, ?, ?, ?)");
 $stmt->execute([$_SESSION['user_id'], $score, $total, $correct]);
+
+require_once 'header.php'; // Make sure this contains <body> tag start
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Test Result</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-<div class="container mt-4">
-  <h2>🎯 Your Result</h2>
-  <p><strong>Total Questions:</strong> <?= htmlspecialchars($total) ?></p>
-  <p><strong>Correct:</strong> <?= htmlspecialchars($correct) ?></p>
-  <p><strong>Score:</strong> <?= htmlspecialchars($score) ?>/100</p>
-  <a href="index.php" class="btn btn-primary">🔁 Try Again</a>
+<div class="container mt-5 text-center">
+  <div class="card shadow-lg p-4 rounded-4 bg-white">
+    <h2 class="mb-4 text-success">🎯 Test Completed!</h2>
+    
+    <div class="mb-3">
+      <span class="badge bg-secondary fs-5">📝 Total Questions: <?= htmlspecialchars($total) ?></span>
+    </div>
+    
+    <div class="mb-3">
+      <span class="badge bg-info fs-5">✅ Correct Answers: <?= htmlspecialchars($correct) ?></span>
+    </div>
+    
+    <div class="mb-3">
+      <span class="badge bg-warning text-dark fs-5">⭐ Score: <?= htmlspecialchars($score) ?> / 100</span>
+    </div>
+
+    <div class="mt-4">
+      <a href="index.php" class="btn btn-primary btn-lg me-2">🔁 Try Again</a>
+      <a href="history.php" class="btn btn-outline-secondary btn-lg">📊 View My History</a>
+    </div>
+  </div>
 </div>
-</body>
-</html>
+
+<?php require_once 'footer.php'; ?>
