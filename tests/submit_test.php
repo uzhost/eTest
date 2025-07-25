@@ -51,8 +51,8 @@ require_once '../header.php'; // Make sure this contains <body> tag start
     </div>
 
     <div class="mt-4">
-      <a href="index.php" class="btn btn-primary btn-lg me-2">🔁 Try Again</a>
-      <a href="history.php" class="btn btn-outline-secondary btn-lg">📊 View My History</a>
+      <a href="../index.php" class="btn btn-primary btn-lg me-2">🔁 Try Again</a>
+      <a href="../users/results.php" class="btn btn-outline-secondary btn-lg">📊 View My History</a>
     </div>
   </div>
 </div>
