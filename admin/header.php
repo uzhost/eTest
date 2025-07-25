@@ -43,6 +43,7 @@ if (!isset($_SESSION['admin_id']) && basename($_SERVER['PHP_SELF']) != 'login.ph
         <li class="nav-item"><a class="nav-link" href="questions.php">❓ Questions</a></li>
         <li class="nav-item"><a class="nav-link" href="add_questions.php">➕ Add</a></li>
           <li class="nav-item"><a class="nav-link" href="users.php">👥 Users</a></li>
+          <li class="nav-item"><a class="nav-link" href="transactions.php">💳 Transactions</a></li>
         <li class="nav-item"><a class="nav-link" href="results.php">📊 Results</a></li>
         <li class="nav-item"><a class="nav-link" href="logout.php">🚪 Logout</a></li>
       </ul>
