@@ -78,31 +78,31 @@ if (isset($_GET['invoice'])) {
     </form>
 
     <?php if ($selectedInvoice): ?>
-      <div class="alert alert-info mt-4">
-        <h5>💳 Payment Instructions</h5>
-        <p>Send <strong><?= number_format($selectedInvoice['amount'], 0, '.', ' ') ?> UZS</strong> to:</p>
-        <ul>
-          <li><strong>UzCard:</strong> 8600 1234 5678 9012</li>
-          <li><strong>Humo:</strong> 9860 1234 5678 9012</li>
-          <li><strong>Payme / Click:</strong> +998 90 123 45 67</li>
-        </ul>
-        <div class="alert alert-warning border-start border-4 border-warning-subtle">
-  <h6>📌 Important: Add This Comment Exactly!</h6>
-  <p>
-    When making the payment, write this in the <strong>Comment</strong> or <strong>Memo</strong> field:
-  </p>
-  <div class="bg-light border rounded p-2 text-center">
-    <code class="fw-bold fs-6 text-primary">
-      eTest.club: <?= htmlspecialchars($username) ?> Pay#<?= $selectedInvoice['id'] ?>
-    </code>
+     <div class="alert alert-info mt-4">
+  <h5>💳 Payment Instructions</h5>
+  <p>Send <strong><?= number_format($selectedInvoice['amount'], 0, '.', ' ') ?> UZS</strong> to:</p>
+  <ul>
+    <li><strong>UzCard:</strong> 8600 1234 5678 9012</li>
+    <li><strong>Humo:</strong> 9860 1234 5678 9012</li>
+    <li><strong>Payme / Click:</strong> +998 90 123 45 67</li>
+  </ul>
+
+  <div class="alert alert-warning border-start border-4 border-warning-subtle">
+    <h6>📌 Important: Add This Comment Exactly!</h6>
+    <p>
+      When making the payment, write this in the <strong>Comment</strong> or <strong>Memo</strong> field:
+    </p>
+    <div class="bg-light border rounded p-2 text-center">
+      <code class="fw-bold fs-6 text-primary">
+        eTest.club: <?= htmlspecialchars($username) ?> Pay#<?= $selectedInvoice['id'] ?>
+      </code>
+    </div>
+    <p class="mt-2 mb-0">
+      <small>❗ Payments without this comment may not be auto-approved. Admin will confirm it within <strong>12 hours</strong>.</small>
+    </p>
   </div>
-  <p class="mt-2 mb-0">
-    ❗Payments without this comment may not be approved automatically.
-  </p>
 </div>
 
-        <small>Please make sure to use this memo exactly. Admin will confirm it within 12 hours.</small>
-      </div>
     <?php endif; ?>
 
     <hr class="my-4">
