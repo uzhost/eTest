@@ -46,6 +46,7 @@ if (!isset($_SESSION['admin_id']) && $filename != 'login.php') {
         <li class="nav-item"><a class="nav-link" href="add_questions.php">➕ Add</a></li>
           <li class="nav-item"><a class="nav-link" href="users.php">👥 Users</a></li>
           <li class="nav-item"><a class="nav-link" href="transactions.php">💳 Transactions</a></li>
+          <li class="nav-item"><a class="nav-link" href="balance_requests.php">💰 Balance</a></li>
         <li class="nav-item"><a class="nav-link" href="results.php">📊 Results</a></li>
         <li class="nav-item"><a class="nav-link" href="logout.php">🚪 Logout</a></li>
       </ul>
