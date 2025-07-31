@@ -10,7 +10,12 @@ if (!isset($_SESSION['user_id'])) {
 $userId = $_SESSION['user_id'];
 $username = $_SESSION['username'] ?? 'User';
 $email = $_SESSION['email'] ?? 'example@mail.com';
-$balance = $_SESSION['balance'] ?? 0;
+
+// Get balance
+$stmt = $pdo->prepare("SELECT balance FROM users WHERE id = ?");
+$stmt->execute([$userId]);
+$balance = $stmt->fetchColumn();
+
 
 // Get last result
 $stmt = $pdo->prepare("SELECT score, correct_answers, total_questions, date_taken FROM results WHERE user_id = ? ORDER BY date_taken DESC LIMIT 1");
