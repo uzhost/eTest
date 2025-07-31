@@ -86,7 +86,21 @@ if (isset($_GET['invoice'])) {
           <li><strong>Humo:</strong> 9860 1234 5678 9012</li>
           <li><strong>Payme / Click:</strong> +998 90 123 45 67</li>
         </ul>
-        <p>📌 <strong>Memo (Comment):</strong> <code>eTest.club: <?= htmlspecialchars($username) ?> Pay#<?= $selectedInvoice['id'] ?></code></p>
+        <div class="alert alert-warning border-start border-4 border-warning-subtle">
+  <h6>📌 Important: Add This Comment Exactly!</h6>
+  <p>
+    When making the payment, write this in the <strong>Comment</strong> or <strong>Memo</strong> field:
+  </p>
+  <div class="bg-light border rounded p-2 text-center">
+    <code class="fw-bold fs-6 text-primary">
+      eTest.club: <?= htmlspecialchars($username) ?> Pay#<?= $selectedInvoice['id'] ?>
+    </code>
+  </div>
+  <p class="mt-2 mb-0">
+    ❗Payments without this comment may not be approved automatically.
+  </p>
+</div>
+
         <small>Please make sure to use this memo exactly. Admin will confirm it within 12 hours.</small>
       </div>
     <?php endif; ?>
