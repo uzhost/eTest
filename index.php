@@ -13,6 +13,7 @@ $totalTests = $pdo->query("SELECT COUNT(*) FROM results")->fetchColumn();
 <head>
   <meta charset="UTF-8">
   <title>Grammar Test | eTest</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -21,14 +22,26 @@ $totalTests = $pdo->query("SELECT COUNT(*) FROM results")->fetchColumn();
     }
     .card-style {
       background: #fff;
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+      border-radius: 18px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s;
+    }
+    .card-style:hover {
+      transform: translateY(-3px);
+    }
+    .btn-gradient {
+      background: linear-gradient(45deg, #00c6ff, #0072ff);
+      color: white;
+      border: none;
+    }
+    .btn-gradient:hover {
+      opacity: 0.9;
     }
   </style>
 </head>
 <body>
-<div class="container mt-5">
+<div class="container py-5">
 
   <div class="text-center mb-5">
     <h1 class="display-5 fw-bold">🎓 Welcome to eTest Grammar Platform</h1>
@@ -36,21 +49,21 @@ $totalTests = $pdo->query("SELECT COUNT(*) FROM results")->fetchColumn();
   </div>
 
   <div class="row text-center mb-4">
-    <div class="col-md-4 mb-3">
+    <div class="col-md-4 col-12 mb-3">
       <div class="card card-style">
-        <h4>📚 Total Questions</h4>
+        <h5>📚 Total Questions</h5>
         <p class="fs-4 text-success"><?= $totalQuestions ?></p>
       </div>
     </div>
-    <div class="col-md-4 mb-3">
+    <div class="col-md-4 col-12 mb-3">
       <div class="card card-style">
-        <h4>👥 Registered Users</h4>
+        <h5>👥 Registered Users</h5>
         <p class="fs-4 text-primary"><?= $totalUsers ?></p>
       </div>
     </div>
-    <div class="col-md-4 mb-3">
+    <div class="col-md-4 col-12 mb-3">
       <div class="card card-style">
-        <h4>✅ Tests Taken</h4>
+        <h5>✅ Tests Taken</h5>
         <p class="fs-4 text-danger"><?= $totalTests ?></p>
       </div>
     </div>
@@ -61,7 +74,7 @@ $totalTests = $pdo->query("SELECT COUNT(*) FROM results")->fetchColumn();
       Please <a href="user/login.php">login</a> or <a href="user/register.php">register</a> to take a test.
     </div>
   <?php else: ?>
-    <div class="card card-style">
+    <div class="card card-style mb-5">
       <h4 class="mb-3">🧪 Start a New Grammar Test</h4>
       <form action="tests/start_test.php" method="post">
         <div class="mb-3">
@@ -87,18 +100,18 @@ $totalTests = $pdo->query("SELECT COUNT(*) FROM results")->fetchColumn();
           </select>
         </div>
 
-        <button type="submit" class="btn btn-success w-100">▶ Start Test</button>
+        <button type="submit" class="btn btn-gradient w-100">▶ Start Test</button>
       </form>
     </div>
   <?php endif; ?>
 
- <hr class="my-5">
+  <hr class="my-5">
 
-  <div class="card card-style">
+  <div class="card card-style mb-5">
     <h4 class="mb-3">📊 Latest Test Results</h4>
     <div class="table-responsive">
-      <table class="table table-striped">
-        <thead>
+      <table class="table table-striped table-hover align-middle">
+        <thead class="table-light">
           <tr>
             <th>User</th>
             <th>Score</th>
@@ -122,20 +135,16 @@ $totalTests = $pdo->query("SELECT COUNT(*) FROM results")->fetchColumn();
           ?>
             <tr>
               <td><?= htmlspecialchars($row['username']) ?></td>
-              <td><?= $row['score'] ?>/<?= $row['total'] ?></td>
+              <td><span class="text-success fw-semibold"><?= $row['score'] ?>/<?= $row['total'] ?></span></td>
               <td><?= date("M d, Y H:i", strtotime($row['created_at'] ?? $row['date'] ?? 'now')) ?></td>
             </tr>
-          <?php
-            endforeach;
-          else:
-            echo "<tr><td colspan='3'>No recent results found.</td></tr>";
-          endif;
-          ?>
+          <?php endforeach; else: ?>
+            <tr><td colspan="3" class="text-center text-muted">No recent results found.</td></tr>
+          <?php endif; ?>
         </tbody>
       </table>
     </div>
   </div>
-
 
 </div>
 
