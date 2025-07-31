@@ -3,7 +3,7 @@ session_start();
 require_once '../config/db.php';
 
 // Redirect if already logged in
-if (isset($_SESSION['admin'])) {
+if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true) {
     header("Location: dashboard.php");
     exit;
 }
@@ -21,42 +21,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($admin) {
         $_SESSION['admin'] = $admin['username'];
         $_SESSION['admin_id'] = $admin['id'];
+        $_SESSION['is_admin'] = true;
         header("Location: dashboard.php");
         exit;
     } else {
         $error = "❌ Invalid credentials. Please try again.";
     }
 }
+
+include 'header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Admin Login</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background: #f0f2f5;
-    }
-    .login-card {
-      margin-top: 80px;
-      padding: 30px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    }
-    h3 {
-      margin-bottom: 25px;
-    }
-  </style>
-</head>
-<body>
+<style>
+body {
+    background: linear-gradient(135deg, #e3f2fd, #ffffff);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+.login-card {
+    background: #fff;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+}
+h3 {
+    font-weight: 600;
+}
+</style>
+
 <div class="container">
-  <div class="row justify-content-center">
+  <div class="row justify-content-center w-100">
     <div class="col-md-5">
-      <div class="login-card">
-        <h3 class="text-center">🔐 Admin Login</h3>
+      <div class="login-card mt-5">
+        <h3 class="text-center mb-4">🔐 Admin Login</h3>
         <?php if ($error): ?>
           <div class="alert alert-danger"><?= $error ?></div>
         <?php endif; ?>
@@ -75,5 +73,5 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
   </div>
 </div>
-</body>
-</html>
+
+<?php include 'footer.php'; ?>
