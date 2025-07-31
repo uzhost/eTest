@@ -11,51 +11,41 @@ $userId = $_SESSION['user_id'];
 $username = $_SESSION['username'] ?? 'User';
 $success = '';
 $error = '';
+$invoiceId = null;
 
-// Handle balance top-up
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['topup_amount'])) {
+// Handle form submission
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['topup_amount'])) {
     $amount = floatval($_POST['topup_amount']);
 
     if ($amount > 0) {
-        $pdo->beginTransaction();
-        try {
-            // Add to balance
-            $stmt = $pdo->prepare("UPDATE users SET balance = balance + ? WHERE id = ?");
-            $stmt->execute([$amount, $userId]);
+        // Insert pending top-up request
+        $stmt = $pdo->prepare("INSERT INTO balance_requests (user_id, amount) VALUES (?, ?)");
+        $stmt->execute([$userId, $amount]);
 
-            // Log the transaction
-            $stmt = $pdo->prepare("INSERT INTO balance_history (user_id, amount, type, description) VALUES (?, ?, 'topup', ?)");
-            $stmt->execute([$userId, $amount, 'Manual top-up']);
-
-            $pdo->commit();
-            $_SESSION['balance'] += $amount;
-            $success = "✅ Balance successfully topped up by {$amount} UZS.";
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            $error = "❌ Failed to top up balance. Try again.";
-        }
+        $invoiceId = $pdo->lastInsertId();
+        $success = "Your request has been sent to admin. Please follow payment instructions below and use the correct memo.";
     } else {
-        $error = "⚠️ Please enter a valid amount.";
+        $error = "⚠️ Please enter a valid amount (greater than 0).";
     }
 }
 
-// Get updated balance
+// Get current balance
 $stmt = $pdo->prepare("SELECT balance FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $balance = $stmt->fetchColumn();
 $_SESSION['balance'] = $balance;
 
-// Get history
-$stmt = $pdo->prepare("SELECT amount, type, description, created_at FROM balance_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 50");
+// Fetch last 10 requests
+$stmt = $pdo->prepare("SELECT id, amount, status, created_at FROM balance_requests WHERE user_id = ? ORDER BY created_at DESC LIMIT 10");
 $stmt->execute([$userId]);
-$history = $stmt->fetchAll();
+$requests = $stmt->fetchAll();
 ?>
 
 <?php include '../header.php'; ?>
 
 <div class="container mt-5" style="max-width: 700px;">
   <div class="card shadow-sm p-4">
-    <h3 class="mb-4">💰 Balance Management</h3>
+    <h3 class="mb-4">💰 Top Up Balance</h3>
 
     <div class="mb-3">
       <strong>Current Balance:</strong>
@@ -70,45 +60,60 @@ $history = $stmt->fetchAll();
 
     <form method="POST" class="row g-3">
       <div class="col-md-8">
-        <label for="topup_amount" class="form-label">Enter Top-up Amount (UZS):</label>
+        <label for="topup_amount" class="form-label">Enter Amount to Top Up (UZS):</label>
         <input type="number" class="form-control" name="topup_amount" id="topup_amount" min="1000" step="1000" required>
       </div>
       <div class="col-md-4 d-flex align-items-end">
-        <button type="submit" class="btn btn-primary w-100">Top Up</button>
+        <button type="submit" class="btn btn-primary w-100">Send Request</button>
       </div>
     </form>
 
+    <?php if ($invoiceId): ?>
+      <div class="alert alert-info mt-4">
+        <h5>💳 Payment Instructions</h5>
+        <p>Send <strong><?= number_format($amount, 0, '.', ' ') ?> UZS</strong> to:</p>
+        <ul>
+          <li><strong>UzCard:</strong> 8600 1234 5678 9012</li>
+          <li><strong>Humo:</strong> 9860 1234 5678 9012</li>
+          <li><strong>Payme / Click:</strong> +998 90 123 45 67</li>
+        </ul>
+        <p>📌 <strong>Memo (Comment):</strong> <code><?= $username ?> #<?= $invoiceId ?></code></p>
+        <small>Please make sure to use this memo exactly. Admin will confirm it within 12 hours.</small>
+      </div>
+    <?php endif; ?>
+
     <hr class="my-4">
 
-    <h5>🧾 Recent Transactions</h5>
-    <?php if (count($history)): ?>
-      <table class="table table-striped mt-3">
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Amount (UZS)</th>
-            <th>Description</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($history as $entry): ?>
+    <h5>📄 Your Top-Up Requests</h5>
+    <table class="table table-sm table-striped mt-3">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Amount (UZS)</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php if ($requests): ?>
+          <?php foreach ($requests as $row): ?>
             <tr>
+              <td>#<?= $row['id'] ?></td>
+              <td><?= number_format($row['amount'], 0, '.', ' ') ?></td>
               <td>
-                <span class="badge <?= $entry['type'] == 'topup' ? 'bg-success' : 'bg-danger' ?>">
-                  <?= ucfirst($entry['type']) ?>
+                <span class="badge 
+                  <?= $row['status'] === 'approved' ? 'bg-success' : ($row['status'] === 'rejected' ? 'bg-danger' : 'bg-warning text-dark') ?>">
+                  <?= ucfirst($row['status']) ?>
                 </span>
               </td>
-              <td><?= number_format($entry['amount'], 0, '.', ' ') ?></td>
-              <td><?= htmlspecialchars($entry['description']) ?></td>
-              <td><?= date('Y-m-d H:i', strtotime($entry['created_at'])) ?></td>
+              <td><?= date('Y-m-d H:i', strtotime($row['created_at'])) ?></td>
             </tr>
           <?php endforeach; ?>
-        </tbody>
-      </table>
-    <?php else: ?>
-      <p class="text-muted">No transactions yet.</p>
-    <?php endif; ?>
+        <?php else: ?>
+          <tr><td colspan="4" class="text-muted">No requests yet.</td></tr>
+        <?php endif; ?>
+      </tbody>
+    </table>
   </div>
 </div>
 
