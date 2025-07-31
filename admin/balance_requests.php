@@ -106,11 +106,11 @@ $requests = $stmt->fetchAll();
               <input type="hidden" name="request_id" value="<?= $r['id'] ?>">
               <select name="payment_method" required class="form-select form-select-sm">
                 <option value="">Method</option>
-                <option value="click">Click</option>
-                <option value="payme">Payme</option>
-                <option value="card">Card</option>
-                <option value="cash">Cash</option>
-                <option value="manual">Manual</option>
+                <option value="Click">Click</option>
+                <option value="Payme">Payme</option>
+                <option value="Card">Card</option>
+                <option value="Cash">Cash</option>
+                <option value="Manual">Manual</option>
               </select>
               <button name="action" value="approve" class="btn btn-success btn-sm">✅</button>
               <button name="action" value="reject" class="btn btn-danger btn-sm">❌</button>
