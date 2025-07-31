@@ -11,19 +11,19 @@ $userId = $_SESSION['user_id'];
 $username = $_SESSION['username'] ?? 'User';
 $success = '';
 $error = '';
-$invoiceId = null;
+$amount = 0;
 
-// Handle form submission
+// Handle new top-up form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['topup_amount'])) {
     $amount = floatval($_POST['topup_amount']);
 
     if ($amount > 0) {
-        // Insert pending top-up request
         $stmt = $pdo->prepare("INSERT INTO balance_requests (user_id, amount) VALUES (?, ?)");
         $stmt->execute([$userId, $amount]);
 
-        $invoiceId = $pdo->lastInsertId();
-        $success = "Your request has been sent to admin. Please follow payment instructions below and use the correct memo.";
+        $newInvoiceId = $pdo->lastInsertId();
+        header("Location: balance.php?invoice=" . $newInvoiceId);
+        exit;
     } else {
         $error = "⚠️ Please enter a valid amount (greater than 0).";
     }
@@ -35,10 +35,19 @@ $stmt->execute([$userId]);
 $balance = $stmt->fetchColumn();
 $_SESSION['balance'] = $balance;
 
-// Fetch last 10 requests
+// Fetch last 10 balance requests
 $stmt = $pdo->prepare("SELECT id, amount, status, created_at FROM balance_requests WHERE user_id = ? ORDER BY created_at DESC LIMIT 10");
 $stmt->execute([$userId]);
 $requests = $stmt->fetchAll();
+
+// Load selected invoice if available
+$selectedInvoice = null;
+if (isset($_GET['invoice'])) {
+    $invoiceId = intval($_GET['invoice']);
+    $stmt = $pdo->prepare("SELECT id, amount FROM balance_requests WHERE id = ? AND user_id = ?");
+    $stmt->execute([$invoiceId, $userId]);
+    $selectedInvoice = $stmt->fetch();
+}
 ?>
 
 <?php include '../header.php'; ?>
@@ -68,23 +77,23 @@ $requests = $stmt->fetchAll();
       </div>
     </form>
 
-    <?php if ($invoiceId): ?>
+    <?php if ($selectedInvoice): ?>
       <div class="alert alert-info mt-4">
         <h5>💳 Payment Instructions</h5>
-        <p>Send <strong><?= number_format($amount, 0, '.', ' ') ?> UZS</strong> to:</p>
+        <p>Send <strong><?= number_format($selectedInvoice['amount'], 0, '.', ' ') ?> UZS</strong> to:</p>
         <ul>
           <li><strong>UzCard:</strong> 8600 1234 5678 9012</li>
           <li><strong>Humo:</strong> 9860 1234 5678 9012</li>
           <li><strong>Payme / Click:</strong> +998 90 123 45 67</li>
         </ul>
-        <p>📌 <strong>Memo (Comment):</strong> <code><?= $username ?> #<?= $invoiceId ?></code></p>
+        <p>📌 <strong>Memo (Comment):</strong> <code>eTest.club: <?= htmlspecialchars($username) ?> Pay#<?= $selectedInvoice['id'] ?></code></p>
         <small>Please make sure to use this memo exactly. Admin will confirm it within 12 hours.</small>
       </div>
     <?php endif; ?>
 
     <hr class="my-4">
 
-    <h5>📄 Your Top-Up Requests</h5>
+    <h5>📄 Your Top-Up History</h5>
     <table class="table table-sm table-striped mt-3">
       <thead>
         <tr>
@@ -97,9 +106,13 @@ $requests = $stmt->fetchAll();
       <tbody>
         <?php if ($requests): ?>
           <?php foreach ($requests as $row): ?>
-            <tr>
+            <tr class="<?= (isset($selectedInvoice['id']) && $selectedInvoice['id'] == $row['id']) ? 'table-info' : '' ?>">
               <td>#<?= $row['id'] ?></td>
-              <td><?= number_format($row['amount'], 0, '.', ' ') ?></td>
+              <td>
+                <a href="?invoice=<?= $row['id'] ?>" class="text-decoration-none">
+                  <?= number_format($row['amount'], 0, '.', ' ') ?>
+                </a>
+              </td>
               <td>
                 <span class="badge 
                   <?= $row['status'] === 'approved' ? 'bg-success' : ($row['status'] === 'rejected' ? 'bg-danger' : 'bg-warning text-dark') ?>">
