@@ -2,7 +2,9 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (!isset($_SESSION['admin_id']) && basename($_SERVER['PHP_SELF']) != 'login.php') {
+
+$filename = basename($_SERVER['PHP_SELF']);
+if (!isset($_SESSION['admin_id']) && $filename != 'login.php') {
     header("Location: login.php");
     exit;
 }
