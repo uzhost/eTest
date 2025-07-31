@@ -47,9 +47,9 @@
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm animate__animated animate__fadeInDown">
+<nav class="navbar navbar-expand-lg shadow-sm animate__animated animate__fadeInDown" style="background-color: #aab4f8;">
   <div class="container">
-    <a class="navbar-brand" href="/index.php">eTest</a>
+    <a class="navbar-brand text-white" href="/index.php">eTest</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#etestNavbar" aria-controls="etestNavbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -58,26 +58,26 @@
       <ul class="navbar-nav ms-auto">
         <?php if (isset($_SESSION['user_id'])):
 
-//Error reporting
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+        // Error reporting
+        ini_set('display_errors', 1);
+        ini_set('display_startup_errors', 1);
+        error_reporting(E_ALL);
         ?>
           <li class="nav-item">
-            <a class="nav-link" href="/user/dashboard.php">Dashboard</a>
+            <a class="nav-link text-white" href="/user/dashboard.php">Dashboard</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/user/results.php">Results</a>
+            <a class="nav-link text-white" href="/user/results.php">Results</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/logout.php">Logout</a>
+            <a class="nav-link text-white" href="/logout.php">Logout</a>
           </li>
         <?php else: ?>
           <li class="nav-item">
-            <a class="nav-link" href="/login.php">Login</a>
+            <a class="nav-link text-white" href="/login.php">Login</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/register.php">Register</a>
+            <a class="nav-link text-white" href="/register.php">Register</a>
           </li>
         <?php endif; ?>
       </ul>
