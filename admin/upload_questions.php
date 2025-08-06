@@ -2,9 +2,11 @@
 require_once '../config/db.php';
 session_start();
 
-if (!isset($_SESSION['user_id'])) {
-  header("Location: ../user/login.php");
-  exit;
+
+if (!isset($_SESSION['admin'])) {
+    header("Location: login.php");
+    exit;
+
 }
 
 $message = '';
@@ -72,7 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['question_file'])) {
   }
 }
 
-include '../header.php';
+
+include 'header.php';
 ?>
 
 <div class="container py-5">
@@ -101,4 +104,5 @@ include '../header.php';
   </div>
 </div>
 
-<?php include '../footer.php'; ?>
+
+<?php include 'footer.php'; ?>
