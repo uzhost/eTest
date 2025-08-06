@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id'])) {
   exit;
 }
 
-// Load questions only once
 if (!isset($_SESSION['questions'])) {
   $difficulty = $_POST['difficulty'] ?? '';
   $category = $_POST['category'] ?? '';
@@ -47,18 +46,30 @@ include '../header.php';
 ?>
 
 <div class="container py-4">
-  <h3 class="mb-4">📝 Grammar Test (50 Questions)</h3>
+  <h3 class="mb-4">📝 Grammar Test <small class="text-muted">(50 Questions)</small></h3>
 
   <?php if (count($questions) === 0): ?>
-    <div class="alert alert-warning">No questions found for selected filters.</div>
+    <div class="alert alert-warning">⚠ No questions found for selected filters.</div>
     <a href="index.php" class="btn btn-secondary">⬅ Back</a>
   <?php else: ?>
+    <!-- Progress bar -->
+    <div class="mb-4">
+      <div class="progress" style="height: 20px;">
+        <div class="progress-bar bg-success" role="progressbar"
+             style="width: <?= ($currentPage / $totalPages) * 100 ?>%;"
+             aria-valuenow="<?= $currentPage ?>" aria-valuemin="1"
+             aria-valuemax="<?= $totalPages ?>">
+          Page <?= $currentPage ?> / <?= $totalPages ?>
+        </div>
+      </div>
+    </div>
+
     <form action="submit_test.php" method="post" onsubmit="injectAnswers()">
       <input type="hidden" name="difficulty" value="<?= htmlspecialchars($difficulty) ?>">
       <input type="hidden" name="category" value="<?= htmlspecialchars($category) ?>">
 
       <?php foreach ($currentQuestions as $i => $q): ?>
-        <div class="card mb-3 shadow-sm">
+        <div class="card mb-3 shadow-sm border-primary">
           <div class="card-body">
             <p><strong>Q<?= $start + $i + 1 ?>:</strong> <?= htmlspecialchars($q['question']) ?></p>
             <?php foreach (['a', 'b', 'c', 'd'] as $opt): ?>
@@ -78,14 +89,15 @@ include '../header.php';
         </div>
       <?php endforeach; ?>
 
-      <div class="d-flex justify-content-between align-items-center">
+      <!-- Navigation Buttons -->
+      <div class="d-flex justify-content-between align-items-center mt-4">
         <div>
           <?php if ($currentPage > 1): ?>
-            <a href="?page=<?= $currentPage - 1 ?>" class="btn btn-outline-primary">⬅ Previous</a>
+            <a href="?page=<?= $currentPage - 1 ?>" class="btn btn-outline-secondary">⬅ Previous</a>
           <?php endif; ?>
         </div>
 
-        <div>
+        <div class="text-muted">
           Page <?= $currentPage ?> of <?= $totalPages ?>
         </div>
 
@@ -93,9 +105,13 @@ include '../header.php';
           <?php if ($currentPage < $totalPages): ?>
             <a href="?page=<?= $currentPage + 1 ?>" class="btn btn-outline-primary">Next ➡</a>
           <?php else: ?>
-            <button class="btn btn-success">✅ Submit Test</button>
+            <button class="btn btn-success fw-bold">✅ Submit Test</button>
           <?php endif; ?>
         </div>
+      </div>
+
+      <div class="text-center text-muted mt-3" style="font-size: 0.9em;">
+        📌 Your answers are saved automatically in your browser as you select them.
       </div>
     </form>
   <?php endif; ?>
