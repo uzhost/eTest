@@ -2,9 +2,11 @@
 require_once '../config/db.php';
 session_start();
 
+
 if (!isset($_SESSION['admin'])) {
     header("Location: login.php");
     exit;
+
 }
 
 $message = '';
@@ -72,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['question_file'])) {
   }
 }
 
+
 include 'header.php';
 ?>
 
@@ -100,5 +103,6 @@ include 'header.php';
     <p class="text-muted">Correct answer must be one of the choices (e.g., "option_a").</p>
   </div>
 </div>
+
 
 <?php include 'footer.php'; ?>
