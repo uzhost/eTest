@@ -16,7 +16,6 @@ $stmt = $pdo->prepare("SELECT balance FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $balance = $stmt->fetchColumn();
 
-
 // Get last result
 $stmt = $pdo->prepare("SELECT score, correct_answers, total_questions, date_taken FROM results WHERE user_id = ? ORDER BY date_taken DESC LIMIT 1");
 $stmt->execute([$userId]);
@@ -27,7 +26,6 @@ $stmt = $pdo->prepare("SELECT COUNT(*) FROM results WHERE user_id = ?");
 $stmt->execute([$userId]);
 $totalAttempts = $stmt->fetchColumn();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -78,9 +76,39 @@ $totalAttempts = $stmt->fetchColumn();
       font-size: 14px;
     }
 
+    .avatar {
+      background: #007bff;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+    }
+
+    .action-buttons a {
+      flex: 1 1 48%;
+    }
+
+    .balance-link {
+      text-decoration: none;
+      color: #007bff;
+    }
+
+    .balance-link:hover {
+      text-decoration: underline;
+    }
+
     @media (max-width: 576px) {
       .dashboard-card {
         padding: 20px;
+      }
+      .action-buttons a {
+        flex: 1 1 100%;
       }
     }
   </style>
@@ -106,11 +134,16 @@ $totalAttempts = $stmt->fetchColumn();
 
 <div class="container mt-5">
   <div class="dashboard-card mx-auto" style="max-width: 700px;">
-    <h3 class="mb-4">👋 Hello, <?= htmlspecialchars($username) ?>!</h3>
+    <div class="d-flex align-items-center mb-4">
+      <div class="avatar"><?= strtoupper(substr($username, 0, 1)) ?></div>
+      <div>
+        <h4 class="mb-0">Welcome, <?= htmlspecialchars($username) ?> 👋</h4>
+        <small class="text-muted"><?= htmlspecialchars($email) ?></small>
+      </div>
+    </div>
 
     <div class="info-box">
-      📧 <strong>Email:</strong> <?= htmlspecialchars($email) ?><br>
-      💰 <strong>Balance:</strong> <?= number_format($balance, 0, '.', ' ') ?> UZS
+      💰 <strong><a href="balance.php" class="balance-link" title="Click to view your balance history">Balance:</a></strong> <?= number_format($balance, 0, '.', ' ') ?> UZS
     </div>
 
     <div class="info-box">
@@ -123,9 +156,9 @@ $totalAttempts = $stmt->fetchColumn();
       <?php endif; ?>
     </div>
 
-    <div class="d-flex flex-wrap gap-2 mt-4">
-      <a href="../tests/start_test.php" class="btn btn-success w-100 w-sm-auto">📝 Take a New Test</a>
-      <a href="results.php" class="btn btn-outline-primary w-100 w-sm-auto">📊 View Results</a>
+    <div class="d-flex flex-wrap gap-2 mt-4 action-buttons">
+      <a href="../tests/start_test.php" class="btn btn-success">📝 Take a New Test</a>
+      <a href="results.php" class="btn btn-outline-primary">📊 View Results</a>
     </div>
   </div>
 </div>
