@@ -1,10 +1,4 @@
 <?php
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-
 session_start();
 require_once '../config/db.php';
 
@@ -24,7 +18,7 @@ $countStmt->execute([$userId]);
 $totalResults = $countStmt->fetchColumn();
 $totalPages = ceil($totalResults / $perPage);
 
-// Fetch paginated results (bind by name to avoid collision with positional param)
+// Fetch paginated results
 $stmt = $pdo->prepare("
     SELECT * FROM results 
     WHERE user_id = :user_id 
@@ -46,6 +40,10 @@ $results = $stmt->fetchAll();
   <?php if (count($results) === 0): ?>
     <div class="alert alert-info text-center">You haven't taken any tests yet.</div>
   <?php else: ?>
+    <p class="text-muted text-center">
+      Showing <strong><?= $offset + 1 ?></strong>–<strong><?= min($offset + $perPage, $totalResults) ?></strong> of <strong><?= $totalResults ?></strong> results
+    </p>
+
     <div class="table-responsive">
       <table class="table table-hover table-bordered align-middle text-center">
         <thead class="table-dark">
@@ -53,18 +51,37 @@ $results = $stmt->fetchAll();
             <th>#</th>
             <th>Date</th>
             <th>Score</th>
-            <th>Total Questions</th>
-            <th>Correct Answers</th>
+            <th>Correct</th>
+            <th>Total</th>
+            <th>Progress</th>
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($results as $i => $res): ?>
+          <?php foreach ($results as $i => $res): 
+            $score = (int)$res['score'];
+            $totalQuestions = (int) $res['total_questions'];
+            $totalPoints = $totalQuestions * 2;
+            $percentage = $totalPoints > 0 ? ($score / $totalPoints) * 100 : 0;
+
+            $badge = $percentage >= 80 ? 'success' : ($percentage >= 50 ? 'warning' : 'danger');
+          ?>
             <tr>
               <td><?= $offset + $i + 1 ?></td>
               <td><?= date("Y-m-d H:i", strtotime($res['created_at'])) ?></td>
-              <td><strong><?= $res['score'] ?>/<?= $res['total_questions'] * 2 ?></strong></td>
-              <td><?= $res['total_questions'] ?></td>
+              <td>
+                <span class="badge bg-<?= $badge ?>">
+                  <?= $score ?>/<?= $totalPoints ?>
+                </span>
+              </td>
               <td><?= $res['correct_answers'] ?></td>
+              <td><?= $res['total_questions'] ?></td>
+              <td>
+                <div class="progress" style="height: 20px;">
+                  <div class="progress-bar bg-<?= $badge ?>" role="progressbar" style="width: <?= round($percentage) ?>%;">
+                    <?= round($percentage) ?>%
+                  </div>
+                </div>
+              </td>
             </tr>
           <?php endforeach; ?>
         </tbody>
@@ -73,23 +90,21 @@ $results = $stmt->fetchAll();
 
     <?php if ($totalPages > 1): ?>
       <nav>
-        <ul class="pagination justify-content-center mt-4">
+        <ul class="pagination justify-content-center mt-4 flex-wrap">
           <?php if ($page > 1): ?>
-            <li class="page-item">
-              <a class="page-link" href="?page=<?= $page - 1 ?>">« Prev</a>
-            </li>
+            <li class="page-item"><a class="page-link" href="?page=1">« First</a></li>
+            <li class="page-item"><a class="page-link" href="?page=<?= $page - 1 ?>">‹ Prev</a></li>
           <?php endif; ?>
 
-          <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+          <?php for ($p = max(1, $page - 2); $p <= min($totalPages, $page + 2); $p++): ?>
             <li class="page-item <?= $p == $page ? 'active' : '' ?>">
               <a class="page-link" href="?page=<?= $p ?>"><?= $p ?></a>
             </li>
           <?php endfor; ?>
 
           <?php if ($page < $totalPages): ?>
-            <li class="page-item">
-              <a class="page-link" href="?page=<?= $page + 1 ?>">Next »</a>
-            </li>
+            <li class="page-item"><a class="page-link" href="?page=<?= $page + 1 ?>">Next ›</a></li>
+            <li class="page-item"><a class="page-link" href="?page=<?= $totalPages ?>">Last »</a></li>
           <?php endif; ?>
         </ul>
       </nav>
